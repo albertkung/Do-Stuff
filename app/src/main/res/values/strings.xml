@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Do Stuff</string>
+    <string name="action_settings">Settings</string>
+    <string name="menu_add_profile">Add Profile</string>
+    <string name="menu_edit_profile">Edit Profile</string>
+
+</resources>
