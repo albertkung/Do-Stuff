@@ -1,8 +1,11 @@
 package albertkung.tsma;
 
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.view.MotionEventCompat;
+import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -14,30 +17,52 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.SimpleTimeZone;
-import java.util.Timer;
-import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
+    private GoogleApiClient mGoogleApiClient;
+    LocationRequest mLocationRequest;
 
     private static String userName = "friend";
+    private static String weatherUrl = "http://api.openweathermap.org/data/2.5/forecast?";
+    private static String appId = "53ec04fa4cf46d6275cfd5a48812e76f";
+    private static Location myLocation;
+
+    private static Context myContext; // for cheap hacks
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        myContext = getApplicationContext();
+
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -51,32 +76,13 @@ public class MainActivity extends AppCompatActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        /*
-        mViewPager.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                int action = MotionEventCompat.getActionMasked(event);
-                // on down-swipe, show menu
-                if (action == MotionEvent.ACTION_DOWN && getSupportActionBar() != null) {
-                    System.out.println("hello world");
-                    getSupportActionBar().show();
-                    // hide again after 2 seconds
-                    Timer t = new Timer();
-                    t.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    getSupportActionBar().hide();
-                                }
-                            });
-                        }
-                    }, 2000);
-                }
-                return true;
-            }
-        });
-        */
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
     }
 
     @Override
@@ -101,6 +107,70 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /* Stuff for location services. */
+    @Override
+    public void onConnected(Bundle bundle) {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(2000);
+        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+        } else {
+            LocationServices.FusedLocationApi.
+                    requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+    }
+
+    /* Stuff for location services. */
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    /* Stuff for location services. */
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        if (requestCode == 0 && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            // put this here so no error
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+            LocationServices.FusedLocationApi.
+                    requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+    }
+
+    @Override
+    public void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    /* Called upon location change to set the weather on the main page. */
+    @Override
+    public void onLocationChanged(Location location) {
+        myLocation = location;
+        PlaceholderFragment fragment = (PlaceholderFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_main);
+        if (fragment != null) {
+            fragment.changeWeather();
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        }
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -117,6 +187,19 @@ public class MainActivity extends AppCompatActivity {
             args.putInt(ARG_SECTION_NUMBER, sectionNumber);
             fragment.setArguments(args);
             return fragment;
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            if (myLocation != null) {
+                changeWeather();
+            }
+            else {
+                // placeholder until weather is updated
+                TextView v = (TextView) getView().findViewById(R.id.temperature_label);
+                v.setText("Checking weather patterns...");
+            }
         }
 
         @Override
@@ -137,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
 
             // msg stuff
             TextView greetingLabel = (TextView) root.findViewById(R.id.greeting_label);
-            String greeting = "Hello";
+            String greeting;
             int currentTime = calender.get(Calendar.HOUR_OF_DAY);
             if (currentTime < 12) {
                 greeting = "Good morning";
@@ -149,6 +232,62 @@ public class MainActivity extends AppCompatActivity {
                 greeting = "Good evening";
             }
             greetingLabel.setText(greeting + ", " + userName);
+        }
+
+        private void changeWeather() {
+            String myUrl = weatherUrl
+                    + "lat=" + myLocation.getLatitude()
+                    + "&lon=" + myLocation.getLongitude()
+                    + "&units=imperial"
+                    + "&appid=" + appId;
+            JsonObjectRequest weatherRequest = new JsonObjectRequest
+                    (Request.Method.GET, myUrl, null, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                View root = getView();
+                                if (root == null) return; // sanity check
+
+                                JSONObject infoList = response.getJSONArray("list").getJSONObject(0);
+                                JSONObject mainInfo = infoList.getJSONObject("main");
+                                double currentTemp = mainInfo.getDouble("temp");
+                                double currentHumidity = mainInfo.getDouble("humidity");
+                                JSONObject weatherInfo = infoList.getJSONArray("weather").getJSONObject(0);
+                                int currentConditions = weatherInfo.getInt("id");
+
+                                TextView tempView = (TextView) root.findViewById(R.id.temperature_label);
+                                tempView.setText("" + currentTemp + (char)0x00B0);
+                                TextView humidityView = (TextView) root.findViewById(R.id.humidity_label);
+                                humidityView.setText("" + currentHumidity + "%");
+                                TextView precipView = (TextView) root.findViewById(R.id.precip_label);
+                                precipView.setText(currentConditions);
+                                TextView feelsView = (TextView) root.findViewById(R.id.humidity_label);
+                                // ?
+                                String feels = "";
+                                if (currentTemp > 90 && currentHumidity > 50) {
+                                    feels = "feels hot";
+                                }
+                                else if (currentTemp < 30) {
+                                    feels = "feels cold";
+                                }
+                                else {
+                                    feels = "feels good";
+                                }
+                                feelsView.setText(feels);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            // weather failed! :(
+                        }
+                    });
+            RequestQueue rq = Volley.newRequestQueue(myContext);
+            rq.add(weatherRequest);
+            rq.start();
+
         }
     }
 
