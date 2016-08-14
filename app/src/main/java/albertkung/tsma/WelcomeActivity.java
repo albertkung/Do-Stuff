@@ -1,6 +1,7 @@
 package albertkung.tsma;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.v4.app.ActivityCompat;
@@ -58,14 +59,8 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
                     .build();
         }
 
-        // time stuff
-        Calendar calender = Calendar.getInstance();
-        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
-        String formattedTime = timeFormat.format(calender.getTime());
-        TextView timeLabel = (TextView) findViewById(R.id.time_label);
-        timeLabel.setText(formattedTime);
-
         // msg stuff
+        Calendar calender = Calendar.getInstance();
         TextView greetingLabel = (TextView) findViewById(R.id.greeting_label);
         String greeting;
         int currentTime = calender.get(Calendar.HOUR_OF_DAY);
@@ -91,7 +86,7 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getOrder()) {
-            case 1: addProfile();
+            case 1: addActivity();
             case 2: editProfiles();
             case 3: changeSettings();
         }
@@ -106,8 +101,9 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
 
     }
 
-    private void addProfile() {
-
+    private void addActivity() {
+        Intent intent = new Intent(this, AddActivity.class);
+        startActivity(intent);
     }
 
     @Override
