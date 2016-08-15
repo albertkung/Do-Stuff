@@ -1,6 +1,7 @@
 package albertkung.tsma;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -13,6 +14,7 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -38,6 +40,8 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
 
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+
+    private static final int ADD_REQUEST = 69;
 
     private static String userName = "friend";
     private static String weatherUrl = "http://api.openweathermap.org/data/2.5/forecast?";
@@ -103,7 +107,21 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
 
     private void addActivity() {
         Intent intent = new Intent(this, AddActivity.class);
-        startActivity(intent);
+        startActivityForResult(intent, ADD_REQUEST);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == ADD_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
+                Task result = (Task) data.getSerializableExtra("task");
+                System.out.println("success");
+
+            } else {
+                System.out.println("failure");
+            }
+        }
     }
 
     @Override

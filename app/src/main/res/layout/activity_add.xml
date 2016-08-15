@@ -36,82 +36,65 @@
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
-                    <LinearLayout
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/label_name"
+                        android:text="Name"/>
+
+                    <EditText
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="20sp"
-                        android:id="@+id/name_container">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/label_name"
-                            android:text="Name: "/>
-                        <EditText
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:singleLine="true"
-                            android:id="@+id/edit_name"
-                            android:ems="10"
-                            android:inputType="text" />
-                    </LinearLayout>
+                        android:singleLine="true"
+                        android:id="@+id/edit_name"
+                        android:inputType="text" />
 
-                    <LinearLayout
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/label_date"
+                        android:text="Date"/>
+
+
+                    <EditText
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="20sp"
-                        android:id="@+id/date_container">
+                        android:singleLine="true"
+                        android:id="@+id/edit_date"
+                        android:inputType="text" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/label_date"
-                            android:text="Date: "/>
-                        <EditText
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:inputType="date"
-                            android:ems="10"
-                            android:singleLine="true"
-                            android:id="@+id/edit_date" />
-                    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/label_time"
+                        android:text="Time"/>
 
-                    <LinearLayout
+                    <EditText
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="20sp"
-                        android:id="@+id/time_container">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/label_time"
-                            android:text="Time: "/>
+                        android:singleLine="true"
+                        android:id="@+id/edit_time"
+                        android:inputType="text" />
 
-                        <EditText
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:singleLine="true"
-                            android:id="@+id/edit_time"
-                            android:ems="10"
-                            android:inputType="time" />
-                    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/label_details"
+                        android:text="Details"/>
 
-                    <LinearLayout
+                    <EditText
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="20sp"
-                        android:id="@+id/details_container">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/label_details"
-                            android:text="Details: "/>
-                        <EditText
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:inputType="textMultiLine"
-                            android:ems="10"
-                            android:id="@+id/edit_details" />
-                    </LinearLayout>
+                        android:inputType="textMultiLine"
+                        android:id="@+id/edit_details"
+                        android:imeOptions="actionDone" />
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="Add"
+                        android:onClick="AddTask" />
 
                 </LinearLayout>
 
