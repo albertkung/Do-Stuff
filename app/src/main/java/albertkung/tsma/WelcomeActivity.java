@@ -4,17 +4,15 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -78,6 +76,10 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
             greeting = "Good evening";
         }
         greetingLabel.setText(greeting + ", " + userName);
+
+        Typeface type = Typeface.createFromAsset(getAssets(), "fonts/weathericons.ttf");
+        ((TextView) findViewById(R.id.weather_icon)).setTypeface(type);
+        ((TextView) findViewById(R.id.precip_label)).setTypeface(type);
     }
 
     @Override
@@ -187,21 +189,26 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
                             JSONObject infoList = response.getJSONArray("list").getJSONObject(0);
                             JSONObject mainInfo = infoList.getJSONObject("main");
                             double currentTemp = mainInfo.getDouble("temp");
-                            double currentHumidity = mainInfo.getDouble("humidity");
+                            int currentHumidity = (int) mainInfo.getDouble("humidity");
                             JSONObject weatherInfo = infoList.getJSONArray("weather").getJSONObject(0);
                             int currentConditions = weatherInfo.getInt("id");
 
                             TextView tempView = (TextView) findViewById(R.id.temperature_label);
                             tempView.setText("" + currentTemp + (char)0x00B0);
                             TextView humidityView = (TextView) findViewById(R.id.humidity_label);
-                            humidityView.setText("" + currentHumidity + "%");
-                            TextView precipView = (TextView) findViewById(R.id.precip_label);
-                            precipView.setText("" + currentConditions);
+                            humidityView.setText(currentHumidity + " ");
+                            ((TextView) findViewById(R.id.precip_label)).setText(Html.fromHtml("&#xf07a"));
                             TextView feelsView = (TextView) findViewById(R.id.feels_label);
                             // ?
                             String feels = "";
-                            if (currentTemp > 80 && currentHumidity > 50) {
+                            if (currentTemp > 90 && currentHumidity > 60) {
+                                feels = "feels mad hot";
+                            }
+                            else if (currentTemp > 80 && currentHumidity > 50) {
                                 feels = "feels hot";
+                            }
+                            else if (currentTemp < 20) {
+                                feels = "feels mad cold";
                             }
                             else if (currentTemp < 40) {
                                 feels = "feels cold";
@@ -210,6 +217,33 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
                                 feels = "feels good";
                             }
                             feelsView.setText(feels);
+
+                            // weather icon
+                            String weather_code;
+                            if (currentConditions < 300) {
+                                weather_code = "f005";
+                            }
+                            else if (currentConditions < 400) {
+                                weather_code = "f009";
+                            }
+                            else if (currentConditions < 600) {
+                                weather_code = "f008";
+                            }
+                            else if (currentConditions < 700) {
+                                weather_code = "f065";
+                            }
+                            else if (currentConditions == 800) {
+                                weather_code = "f00d";
+                            }
+                            else if (currentConditions < 900) {
+                                weather_code = "f002";
+                            }
+                            else {
+                                weather_code = "f075";
+                            }
+                            TextView weather_icon = ((TextView) findViewById(R.id.weather_icon));
+                            weather_icon.setText(Html.fromHtml("&#x" + weather_code));
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
