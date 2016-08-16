@@ -2,6 +2,7 @@ package albertkung.tsma;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
@@ -31,13 +32,18 @@ import com.google.android.gms.location.LocationServices;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Calendar;
 
 public class WelcomeActivity extends AppCompatActivity implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+
+    private TaskManager manager;
 
     private static final int ADD_REQUEST = 69;
 
@@ -50,9 +56,9 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
-
         getSupportActionBar().setTitle("");
 
+        // api client for getting location
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -77,9 +83,15 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
         }
         greetingLabel.setText(greeting + ", " + userName);
 
+        // initialize weather stuff
         Typeface type = Typeface.createFromAsset(getAssets(), "fonts/weathericons.ttf");
         ((TextView) findViewById(R.id.weather_icon)).setTypeface(type);
         ((TextView) findViewById(R.id.precip_label)).setTypeface(type);
+
+        // get tasks
+        manager = new TaskManager();
+        manager.restoreTasks(this);
+
     }
 
     @Override
@@ -167,6 +179,12 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
             LocationServices.FusedLocationApi.
                     requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        manager.saveTasks(this);
     }
 
     @Override

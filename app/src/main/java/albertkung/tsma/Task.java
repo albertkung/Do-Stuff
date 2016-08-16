@@ -14,4 +14,8 @@ public class Task implements Serializable {
         this.details = details;
         this.date = date;
     }
+
+    public byte[] getBytes() {
+        return new byte[0];
+    }
 }
