@@ -121,8 +121,11 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getOrder()) {
             case 1: addActivity();
+                break;
             case 2: editProfiles();
+                break;
             case 3: changeSettings();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
