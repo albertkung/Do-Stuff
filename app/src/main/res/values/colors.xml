@@ -6,4 +6,5 @@
     <color name="colorMatching">#B60CE8</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="gray">#808080</color>
 </resources>

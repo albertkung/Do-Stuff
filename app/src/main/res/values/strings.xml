@@ -8,4 +8,7 @@
 
     <string name="welcome_tasks">To-do List</string>
 
+    <string name="settings_label_1">User Settings</string>
+    <string name="settings_label_2">Display Settings</string>
+
 </resources>
