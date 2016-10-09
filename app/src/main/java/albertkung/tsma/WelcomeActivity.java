@@ -7,13 +7,18 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.location.Location;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -32,10 +37,6 @@ import com.google.android.gms.location.LocationServices;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Calendar;
 
 public class WelcomeActivity extends AppCompatActivity implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
@@ -48,9 +49,6 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
     private static final int ADD_REQUEST = 69;
 
     private static String userName = "friend";
-    private static String weatherUrl = "http://api.openweathermap.org/data/2.5/forecast?";
-    private static String appId = "53ec04fa4cf46d6275cfd5a48812e76f";
-    private static Location myLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +89,21 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
         // get tasks
         manager = new TaskManager();
         manager.restoreTasks(this);
+        updateTasks();
+    }
 
+    private void updateTasks() {
+        TextView task_badge = (TextView) findViewById(R.id.task_badge);
+        if (task_badge != null) {
+            task_badge.setText("" + manager.getNumTasks(1));
+        }
+    }
+
+    public void showTasks(View view) {
+        if (view.getId() == R.id.today_tasks) {
+            Intent intent = new Intent(this, DisplayActivity.class);
+            startActivity(intent);
+        }
     }
 
     @Override
@@ -127,14 +139,10 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ADD_REQUEST) {
-            if (resultCode == Activity.RESULT_OK) {
-                Task result = (Task) data.getSerializableExtra("task");
-                System.out.println("success");
-
-            } else {
-                System.out.println("failure");
-            }
+        if (requestCode == ADD_REQUEST && resultCode == Activity.RESULT_OK) {
+            Task result = (Task) data.getSerializableExtra("task");
+            manager.addTask(result);
+            updateTasks();
         }
     }
 
@@ -151,13 +159,36 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
         mLocationRequest = new LocationRequest();
         mLocationRequest.setNumUpdates(1);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+        // check for location permissions
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
-        } else {
-            myLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            updateWeather();
+        }
+        // check for location enabled
+        else if (!isLocationEnabled(this)) {
+            Toast.makeText(this, "Enable location to receive weather information.", Toast.LENGTH_LONG).show();
+        }
+        // update weather
+        else {
+            updateWeather(LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        }
+    }
+
+    public static boolean isLocationEnabled(Context context) {
+        int locationMode = 0;
+        String locationProviders;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            try {
+                locationMode = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.LOCATION_MODE);
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+            }
+            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+
+        } else {
+            locationProviders = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+            return !TextUtils.isEmpty(locationProviders);
         }
     }
 
@@ -189,14 +220,15 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
 
     @Override
     public void onLocationChanged(Location location) {
-        myLocation = location;
-        updateWeather();
+        updateWeather(location);
     }
 
-    private void updateWeather() {
+    private void updateWeather(Location location) {
+        String weatherUrl = "http://api.openweathermap.org/data/2.5/forecast?";
+        String appId = "53ec04fa4cf46d6275cfd5a48812e76f";
         String myUrl = weatherUrl
-                + "lat=" + myLocation.getLatitude()
-                + "&lon=" + myLocation.getLongitude()
+                + "lat=" + location.getLatitude()
+                + "&lon=" + location.getLongitude()
                 + "&units=imperial"
                 + "&appid=" + appId;
         JsonObjectRequest weatherRequest = new JsonObjectRequest
@@ -276,4 +308,5 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
         rq.add(weatherRequest);
         rq.start();
     }
+
 }

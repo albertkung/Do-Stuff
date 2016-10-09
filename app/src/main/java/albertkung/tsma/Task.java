@@ -15,7 +15,8 @@ public class Task implements Serializable {
         this.date = date;
     }
 
-    public byte[] getBytes() {
-        return new byte[0];
+    public boolean isBefore(Calendar calendar) {
+        return date.before(calendar);
     }
+
 }

@@ -6,4 +6,6 @@
     <string name="menu_edit_profile">Edit Profile</string>
     <string name="menu_cancel">Cancel</string>
 
+    <string name="welcome_tasks">To-do List</string>
+
 </resources>
