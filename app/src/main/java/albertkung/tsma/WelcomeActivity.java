@@ -10,6 +10,7 @@ import android.location.Location;
 import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
@@ -17,6 +18,9 @@ import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,8 +51,7 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
     private TaskManager manager;
 
     private static final int ADD_REQUEST = 69;
-
-    private static String userName = "friend";
+    private Config mConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +69,7 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
         }
 
         // msg stuff
+        mConfig = new Config();
         Calendar calender = Calendar.getInstance();
         TextView greetingLabel = (TextView) findViewById(R.id.greeting_label);
         String greeting;
@@ -79,7 +83,7 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
         else {
             greeting = "Good evening";
         }
-        greetingLabel.setText(greeting + ", " + userName);
+        greetingLabel.setText(greeting + ", " + mConfig.getName());
 
         // initialize weather stuff
         Typeface type = Typeface.createFromAsset(getAssets(), "fonts/weathericons.ttf");
@@ -124,7 +128,8 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
     }
 
     private void changeSettings() {
-
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
     private void editProfiles() {
@@ -170,6 +175,10 @@ public class WelcomeActivity extends AppCompatActivity implements ConnectionCall
         }
         // update weather
         else {
+            LinearLayout weather = (LinearLayout) findViewById(R.id.weather_container);
+            ViewGroup.LayoutParams p = weather.getLayoutParams();
+            p.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            weather.setLayoutParams(p);
             updateWeather(LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         }
